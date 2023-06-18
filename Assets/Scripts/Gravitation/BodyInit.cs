@@ -11,21 +11,24 @@ public class BodyInit : MonoBehaviour
     private float G = 1f;
 
     private static float planetMinPos;
-    [Range(1f, 1000f)]public float planetMaxPos = 300f;
+    [Range(1f, 1000f)] public float planetMaxPos = 300f;
 
     public GameObject sun = BodyTools.sun;
     public Vector3 mainBodyPos = new(0, 0, 0);
     public List<(GameObject planet, BodyBehavior behavior)> bodyList = new();
 
-    [Range(0.5f,1f)]public float geneSpeed = 0.7f;
-    
+    [Range(1, 10)] public int geneSpeed = 1;
+
 
     [SerializeField]
     public ShaderCal shaderCal;
 
     private float sunDiam;
+    [System.NonSerialized]
     public bool generated = false;
+    [System.NonSerialized]
     public bool isReGene = false;
+    public Color sunColor;
 
     void Start()
     {
@@ -38,7 +41,7 @@ public class BodyInit : MonoBehaviour
         BodyTools.mainBodyPos = mainBodyPos;
         BodyTools.G = G;
 
-        sun = BodyTools.SunInit(Color.yellow, mainBodyPos, mainBodyMass, mainBodyDensity);
+        sun = BodyTools.SunInit(sunColor, mainBodyPos, mainBodyMass, mainBodyDensity);
         BodyBehavior sunBehavior = sun.GetComponent<BodyBehavior>();
         sunBehavior.bodyInit = this;
         sunDiam = sunBehavior.diam;
@@ -60,12 +63,15 @@ public class BodyInit : MonoBehaviour
 
     void Update()
     {
-        if(isReGene && Random.Range(0f,1f) > geneSpeed && bodyList.Count < geneNumber)
+        if (bodyList.Count < geneNumber)
         {
-            GameObject planet = BodyTools.PlanetInit();
-            BodyBehavior behavior = planet.GetComponent<BodyBehavior>();
-            behavior.bodyInit = this;
-            bodyList.Add((planet, behavior));
+            for (int i = 0; i < geneSpeed; i++)
+            {
+                GameObject planet = BodyTools.PlanetInit();
+                BodyBehavior behavior = planet.GetComponent<BodyBehavior>();
+                behavior.bodyInit = this;
+                bodyList.Add((planet, behavior));
+            }
         }
     }
 }

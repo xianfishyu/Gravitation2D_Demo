@@ -18,7 +18,7 @@ public class ShaderCal
     public Vector3[] pos;
     public Vector3[] vel;
     public float[] mass;
-    public bool isReady = false;
+    [NonSerialized] public bool isReady = false;
 
     public ShaderCal((GameObject planet, BodyBehavior behavior)[] bodyList)
     {
