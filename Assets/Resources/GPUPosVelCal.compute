@@ -1,0 +1,64 @@
+#pragma kernel CSMain
+
+RWStructuredBuffer<float3> inputPos;
+RWStructuredBuffer<float3> inputVel;
+RWStructuredBuffer<float> inputMass;
+RWStructuredBuffer<float3> outputPos;
+RWStructuredBuffer<float3> outputVel;
+
+float G;
+float dt;
+int count;
+
+float3 GetAcc(uint id,int count,float G,float3 thisPos)
+{
+    float3 acc = float3(0, 0, 0);
+    float3 pointTo;
+    float radius;
+    for(uint i = 0; i < (uint)count;i++)
+    {
+        if(i != id)
+        {
+            pointTo = inputPos[i] - thisPos;
+            radius = length(pointTo);
+            acc += (G * inputMass[i] / radius / radius) * normalize(pointTo);
+        }
+    }
+
+
+    return acc;
+}
+
+void RungeKuttaPositionAndVelocity(float3 acc, inout float3 pos, inout float3 vel, float dt)
+{
+    // 声明中间变量
+    float3 k1 = vel * dt;
+    float3 l1 = acc * dt;
+    float3 k2 = (vel + 0.5f * l1) * dt;
+    float3 l2 = acc * dt;
+    float3 k3 = (vel + 0.5f * l2) * dt;
+    float3 l3 = acc * dt;
+    float3 k4 = (vel + l3) * dt;
+    float3 l4 = acc * dt;
+
+    // 计算位置和速度
+    pos = pos + 1.0f / 6.0f * (k1 + 2.0f * k2 + 2.0f * k3 + k4);
+    vel = vel + 1.0f / 6.0f * (l1 + 2.0f * l2 + 2.0f * l3 + l4);
+}
+
+
+
+[numthreads(8,8,1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    float3 thisPos = inputPos[id.x];
+    float3 thisVel = inputVel[id.x];
+    float3 acc = GetAcc(id.x,count,G,thisPos);
+    
+    RungeKuttaPositionAndVelocity(acc,thisPos,thisVel,dt);
+
+    outputPos[id.x] = thisPos;
+    outputVel[id.x] = thisVel;
+}
+
+
