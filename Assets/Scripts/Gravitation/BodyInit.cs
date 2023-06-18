@@ -11,7 +11,7 @@ public class BodyInit : MonoBehaviour
     private float G = 1f;
 
     private static float planetMinPos;
-    [Range(1f, 1000f)] public float planetMaxPos = 300f;
+    [Range(1f, 3000f)] public float planetMaxPos = 300f;
 
     public GameObject sun = BodyTools.sun;
     public Vector3 mainBodyPos = new(0, 0, 0);
@@ -26,8 +26,7 @@ public class BodyInit : MonoBehaviour
     private float sunDiam;
     [System.NonSerialized]
     public bool generated = false;
-    [System.NonSerialized]
-    public bool isReGene = false;
+    public bool isReGene = true;
     public Color sunColor;
 
     void Start()
@@ -63,7 +62,7 @@ public class BodyInit : MonoBehaviour
 
     void Update()
     {
-        if (bodyList.Count < geneNumber)
+        if (bodyList.Count < geneNumber && isReGene)
         {
             for (int i = 0; i < geneSpeed; i++)
             {

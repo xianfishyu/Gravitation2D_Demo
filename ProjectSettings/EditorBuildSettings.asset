@@ -8,7 +8,10 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/SampleScene.unity
     guid: 2cda990e2423bbf4892e6590ba056729
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/GravitationTest.unity
     guid: 0d88c9a5733b89e48a42ba3a6181125a
+  - enabled: 1
+    path: Assets/Scenes/GravitationWithShader.unity
+    guid: 4536fda531c4e254e950203662c0fdba
   m_configObjects: {}

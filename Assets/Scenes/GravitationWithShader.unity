@@ -274,17 +274,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mainBodyMass: 1278094
   mainBodyDensity: 5
-  geneNumber: 1637
-  planetMaxPos: 1000
+  geneNumber: 2400
+  planetMaxPos: 1500
   sun: {fileID: 0}
   mainBodyPos: {x: 0, y: 0, z: 0}
-  geneSpeed: 0
+  geneSpeed: 6
   shaderCal:
     G: 1
-    dt: 0
+    dt: 0.01
     pos: []
     vel: []
     mass: []
+  isReGene: 1
   sunColor: {r: 1, g: 0.39215687, b: 0.15566039, a: 1}
 --- !u!4 &1310013759
 Transform:
