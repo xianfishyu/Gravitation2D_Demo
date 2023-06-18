@@ -8,8 +8,7 @@ public class ShaderCal
     static public ComputeShader GPUPosVelCal;
     public ComputeBuffer inputPos, inputVel, inputMass, inputParameter, outputPos, outputVel;
     //配置
-    public float G = 1.0f;
-    [Range(-0.1f,0.1f)] public float dt = 0.01f;
+    public BodyInit bodyInit;
 
     //id
     int kernelIndex;
@@ -18,6 +17,7 @@ public class ShaderCal
     public Vector3[] pos;
     public Vector3[] vel;
     public float[] mass;
+    //public float[] radius;
     [NonSerialized] public bool isReady = false;
 
     public ShaderCal((GameObject planet, BodyBehavior behavior)[] bodyList)
@@ -26,6 +26,13 @@ public class ShaderCal
         pos = new Vector3[bodyArray.Length];
         vel = new Vector3[bodyArray.Length];
         mass = new float[bodyArray.Length];
+
+        for (int i = 0; i < bodyArray.Length; i++)
+        {
+            pos[i] = bodyArray[i].planet.transform.position;
+            vel[i] = bodyArray[i].behavior.vel;
+            mass[i] = bodyArray[i].behavior.mass;
+        }
     
         //初始化id
         kernelIndex = GPUPosVelCal.FindKernel("CSMain");
@@ -60,20 +67,15 @@ public class ShaderCal
         //初始化参数
         BufferInit(pos.Length);
 
-        for (int i = 0; i < bodyArray.Length; i++)
-        {
-            pos[i] = bodyArray[i].planet.transform.position;
-            vel[i] = bodyArray[i].behavior.vel;
-            mass[i] = bodyArray[i].behavior.mass;
-        }
+        
 
         //set缓冲区
         inputPos.SetData(pos);
         inputVel.SetData(vel);
         inputMass.SetData(mass);
         //将缓冲区内容写入到shader中
-        GPUPosVelCal.SetFloat("G", G);
-        GPUPosVelCal.SetFloat("dt", dt);
+        GPUPosVelCal.SetFloat("G", bodyInit.G);
+        GPUPosVelCal.SetFloat("dt", bodyInit.dt);
         GPUPosVelCal.SetInt("count", pos.Length);
         GPUPosVelCal.SetBuffer(kernelIndex, "inputPos", inputPos);
         GPUPosVelCal.SetBuffer(kernelIndex, "inputVel", inputVel);

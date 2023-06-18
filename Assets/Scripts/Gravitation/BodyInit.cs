@@ -7,21 +7,21 @@ public class BodyInit : MonoBehaviour
     [Range(500000f, 3000000f)]
     public float mainBodyMass;
     [Range(5f, 300f)] public float mainBodyDensity = 10f;
-    [Range(1, 7500)] public int geneNumber = 10;
-    private float G = 1f;
+    [Range(1, 3000)] public int geneNumber = 10;
 
     private static float planetMinPos;
-    [Range(1f, 3000f)] public float planetMaxPos = 300f;
+    [Range(1f, 7000f)] public float planetMaxPos = 300f;
 
     public GameObject sun = BodyTools.sun;
     public Vector3 mainBodyPos = new(0, 0, 0);
     public List<(GameObject planet, BodyBehavior behavior)> bodyList = new();
 
     [Range(1, 10)] public int geneSpeed = 1;
-
+    public float G = 1f;
+    [Range(-0.1f,1f)] public float dt = 0.1f;
 
     [SerializeField]
-    public ShaderCal shaderCal;
+    public ShaderCal shaderCal;//public GPUCollitionCal gPUCollitionCal;
 
     private float sunDiam;
     [System.NonSerialized]
@@ -34,6 +34,7 @@ public class BodyInit : MonoBehaviour
         UnsafeUtility.SetLeakDetectionMode(Unity.Collections.NativeLeakDetectionMode.Enabled);
         BodyTools.body = Resources.Load<GameObject>("Prefabs/Body");
         ShaderCal.GPUPosVelCal = Resources.Load<ComputeShader>("GPUPosVelCal");
+        GPUCollitionCal.GPUColliderCal = Resources.Load<ComputeShader>("GPUColliderCal");
 
 
         BodyTools.mainBodyMass = mainBodyMass;
@@ -57,7 +58,12 @@ public class BodyInit : MonoBehaviour
             bodyList.Add((planet, behavior));
         }
         shaderCal = new(bodyList.ToArray());
+        shaderCal.bodyInit = this;
+
+        //gPUCollitionCal = new(bodyList.ToArray());
         generated = true;
+
+        Physics.sleepThreshold = 0.001f;
     }
 
     void Update()

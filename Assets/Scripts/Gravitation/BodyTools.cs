@@ -31,9 +31,9 @@ public static class BodyTools
 
         sun.transform.position = pos;
         BodyBehavior bodyBehavior = sun.GetComponent<BodyBehavior>();
-        bodyBehavior.InitInformation(Vector3.zero, diam, mass,density);
-
         bodyBehavior.mainBody = true;
+        bodyBehavior.InitInformation(Vector3.zero, diam, mass, density, color);
+
 
         return sun;
     }
@@ -61,7 +61,7 @@ public static class BodyTools
         planet.transform.position = pos;
 
         BodyBehavior bodyBehavior = planet.GetComponent<BodyBehavior>();
-        bodyBehavior.InitInformation(vel, diam, mass,density);
+        bodyBehavior.InitInformation(vel, diam, mass, density, spriteRenderer.color);
 
         bodyBehavior.mainBody = false;
 
@@ -76,7 +76,7 @@ public static class BodyTools
     /// <returns></returns>
     public static float StarDiam(float mass, float density)
     {
-        float diam = 2f * Mathf.Pow((3f * (mass / density )) / (4f * Mathf.PI), 1f / 3f);
+        float diam = 2f * Mathf.Pow((3f * (mass / density)) / (4f * Mathf.PI), 1f / 3f);
         return diam;
     }
 
@@ -101,9 +101,9 @@ public static class BodyTools
     /// <returns></returns>
     public static Vector3 RandomPosition()
     {
-        float angle = Random.Range(0f,2*Mathf.PI);
-        float radius = Random.Range(planetMinPos,planetMaxPos);
-        Vector3 pos = new Vector3(Mathf.Cos(angle),Mathf.Sin(angle),0) * radius;
+        float angle = Random.Range(0f, 2 * Mathf.PI);
+        float radius = Random.Range(planetMinPos, planetMaxPos);
+        Vector3 pos = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0) * radius;
         return pos;
     }
 
@@ -146,6 +146,6 @@ public static class BodyTools
         planetMaxPos = max;
     }
 
-    
+
 }
 

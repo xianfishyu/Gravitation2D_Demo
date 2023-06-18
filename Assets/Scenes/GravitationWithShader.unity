@@ -178,7 +178,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 200
+  orthographic size: 700
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -272,16 +272,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 355101895bc978a4799b40f55972ef7c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mainBodyMass: 1278094
+  mainBodyMass: 500000
   mainBodyDensity: 5
-  geneNumber: 2400
-  planetMaxPos: 1500
+  geneNumber: 2000
+  planetMaxPos: 1700
   sun: {fileID: 0}
   mainBodyPos: {x: 0, y: 0, z: 0}
-  geneSpeed: 6
+  geneSpeed: 10
+  G: 1
+  dt: 0.01
   shaderCal:
-    G: 1
-    dt: 0.01
+    bodyInit: {fileID: 0}
     pos: []
     vel: []
     mass: []
