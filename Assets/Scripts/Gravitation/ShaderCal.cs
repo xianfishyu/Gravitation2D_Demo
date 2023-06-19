@@ -1,100 +1,110 @@
 using System;
 using UnityEngine;
+using Unity.Collections;
+using UnityEngine.UIElements;
+using System.Collections.Generic;
+using System.Buffers;
 
 [Serializable]
 public class ShaderCal
 {
-    //缓冲区
+    //GPU参数区
     static public ComputeShader GPUPosVelCal;
-    public ComputeBuffer inputPos, inputVel, inputMass, inputParameter, outputPos, outputVel;
+    static int kernelIndex;
+    public ComputeBuffer inputPos, inputVel, inputMass, inputRadius, outputPos, outputVel, collisionFlagsBuffer, collisionIndexBuffer;
+
     //配置
+    [NonSerialized]
     public BodyInit bodyInit;
 
-    //id
-    int kernelIndex;
     //各种列表
-    public (GameObject planet, BodyBehavior behavior)[] bodyArray;
-    public Vector3[] pos;
-    public Vector3[] vel;
-    public float[] mass;
-    //public float[] radius;
-    [NonSerialized] public bool isReady = false;
+    private Vector3[] pos;
+    private Vector3[] vel;
+    private float[] mass;
+    private float[] radiusArray;
+    private int[] collisionIndex;
+    private int[] collisionFlags;
+    private (GameObject planet, BodyBehavior behavior)[] bodyArray;
 
-    public ShaderCal((GameObject planet, BodyBehavior behavior)[] bodyList)
+    public int count;
+    public bool isReady = false;
+
+
+
+    public ShaderCal(BodyInit bodyInit)
     {
-        this.bodyArray = bodyList;
-        pos = new Vector3[bodyArray.Length];
-        vel = new Vector3[bodyArray.Length];
-        mass = new float[bodyArray.Length];
-
-        for (int i = 0; i < bodyArray.Length; i++)
-        {
-            pos[i] = bodyArray[i].planet.transform.position;
-            vel[i] = bodyArray[i].behavior.vel;
-            mass[i] = bodyArray[i].behavior.mass;
-        }
-    
-        //初始化id
         kernelIndex = GPUPosVelCal.FindKernel("CSMain");
+        this.bodyInit = bodyInit;
+        count = bodyInit.bodyList.Count;
 
+        //初始化id
+        RentPool();
+        SetData();
         isReady = true;
+    }
+
+    public void SetData()
+    {
+        for (int i = 0; i < count; i++)
+        {
+            bodyArray[i] = bodyInit.bodyList[i];
+        }
     }
 
 
     //初始化
-    void BufferInit(int count)
+    public void BufferInit()
     {
         //初始化缓冲区
         inputPos = new ComputeBuffer(count, sizeof(float) * 3);
         inputVel = new ComputeBuffer(count, sizeof(float) * 3);
+        inputRadius = new ComputeBuffer(count, sizeof(float));
         inputMass = new ComputeBuffer(count, sizeof(float));
         outputPos = new ComputeBuffer(count, sizeof(float) * 3);
         outputVel = new ComputeBuffer(count, sizeof(float) * 3);
+        collisionFlagsBuffer = new ComputeBuffer(count, sizeof(int));
+        collisionIndexBuffer = new ComputeBuffer(count, sizeof(int));
     }
 
-    void BufferDestory()
+    public void BufferDestory()
     {
         inputPos.Dispose();
         inputVel.Dispose();
         inputMass.Dispose();
+        inputRadius.Dispose();
         outputPos.Dispose();
         outputVel.Dispose();
+        collisionFlagsBuffer.Dispose();
+        collisionIndexBuffer.Dispose();
     }
 
     //计算
-    (Vector3[], Vector3[]) GPUCal(Vector3[] pos, Vector3[] vel, float[] mass)
+    void GPUCal()
     {
-        //初始化参数
-        BufferInit(pos.Length);
-
-        
-
         //set缓冲区
-        inputPos.SetData(pos);
-        inputVel.SetData(vel);
-        inputMass.SetData(mass);
+        inputPos.SetData(this.pos, 0, 0, count);
+        inputVel.SetData(this.vel, 0, 0, count);
+        inputMass.SetData(mass, 0, 0, count);
+        inputRadius.SetData(radiusArray, 0, 0, count);
         //将缓冲区内容写入到shader中
         GPUPosVelCal.SetFloat("G", bodyInit.G);
-        GPUPosVelCal.SetFloat("dt", bodyInit.dt);
-        GPUPosVelCal.SetInt("count", pos.Length);
+        GPUPosVelCal.SetFloat("dt", bodyInit.calcSpeed * Time.smoothDeltaTime);
+        GPUPosVelCal.SetInt("count", count);
         GPUPosVelCal.SetBuffer(kernelIndex, "inputPos", inputPos);
         GPUPosVelCal.SetBuffer(kernelIndex, "inputVel", inputVel);
         GPUPosVelCal.SetBuffer(kernelIndex, "inputMass", inputMass);
+        GPUPosVelCal.SetBuffer(kernelIndex, "inputRadius", inputRadius);
         GPUPosVelCal.SetBuffer(kernelIndex, "outputPos", outputPos);
         GPUPosVelCal.SetBuffer(kernelIndex, "outputVel", outputVel);
+        GPUPosVelCal.SetBuffer(kernelIndex, "collisionFlagsBuffer", collisionFlagsBuffer);
+        GPUPosVelCal.SetBuffer(kernelIndex, "collisionIndexBuffer", collisionIndexBuffer);
         //shader计算
-        GPUPosVelCal.Dispatch(kernelIndex, pos.Length, 1, 1);
-        //定义输出数组
-        Vector3[] posList = new Vector3[pos.Length];
-        Vector3[] velList = new Vector3[vel.Length];
+        GPUPosVelCal.Dispatch(kernelIndex, count * 2, 1, 1);
         //获取输出数组
-
-        outputPos.GetData(posList);
-        outputVel.GetData(velList);
-
-        BufferDestory();
-        //返回
-        return (posList, velList);
+        outputPos.GetData(pos, 0, 0, count);
+        outputVel.GetData(vel, 0, 0, count);
+        collisionFlagsBuffer.GetData(collisionFlags, 0, 0, count);
+        collisionIndexBuffer.GetData(collisionIndex, 0, 0, count);
     }
 
     /// <summary>
@@ -102,16 +112,63 @@ public class ShaderCal
     /// </summary>
     public void PosVelUpdate()
     {
-        (Vector3[] pos, Vector3[] vel) ret = GPUCal(this.pos, this.vel, this.mass);
-        this.pos = ret.pos;
-        this.vel = ret.vel;
-
-        for (int i = 1; i < bodyArray.Length; i++)
+        BufferInit();
+        
+        for (int i = 0; i < count; i++)
         {
-            bodyArray[i].planet.transform.position = this.pos[i];
-            bodyArray[i].behavior.pos = this.pos[i];
-            bodyArray[i].behavior.vel = this.vel[i];
+            // pos[i] = bodyArray[i].planet.transform.position;
+            pos[i] = bodyArray[i].behavior.pos;
+            vel[i] = bodyArray[i].behavior.vel;
+            mass[i] = bodyArray[i].behavior.mass;
+            radiusArray[i] = (bodyArray[i].behavior.diam) / 2f;
         }
+
+        GPUCal();
+
+        for (int i = 0; i < count; i++)
+        {
+            if (i > 0)
+            {
+                // bodyArray[i].planet.transform.position = this.pos[i];
+                bodyArray[i].behavior.pos = this.pos[i];
+                bodyArray[i].behavior.vel = this.vel[i];
+            }
+            int otherIndex = collisionIndex[i];
+            if (collisionFlags[i] == 1)
+            {
+                try
+                {
+                    bodyArray[i].behavior.Trigger(
+                        bodyArray[otherIndex].planet
+                    );
+                }
+                catch (System.Exception)
+                {
+                    Debug.LogError(i);
+                    Debug.LogError(otherIndex);
+                }
+            }
+        }
+
+        BufferDestory();
     }
 
+    public void RentPool()
+    {
+        bodyArray = ArrayPool<(GameObject planet, BodyBehavior behavior)>.Shared.Rent(count);
+        pos = ArrayPool<Vector3>.Shared.Rent(count);
+        vel = ArrayPool<Vector3>.Shared.Rent(count);
+        mass = ArrayPool<float>.Shared.Rent(count);
+        radiusArray = ArrayPool<float>.Shared.Rent(count);
+        collisionIndex = ArrayPool<int>.Shared.Rent(count);
+        collisionFlags = ArrayPool<int>.Shared.Rent(count);
+        
+        // bodyArray = new (GameObject planet, BodyBehavior behavior)[count];
+        // pos = new Vector3[count];
+        // vel = new Vector3[count];
+        // mass = new float[count];
+        // radiusArray = new float[count];
+        // collisionFlags = new int[count];
+        // collisionIndex = new int[count];
+    }
 }

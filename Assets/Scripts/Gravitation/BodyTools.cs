@@ -12,6 +12,9 @@ public static class BodyTools
     public static float G;
     public static GameObject sun;
 
+    public static int minMass, maxMass;
+    public static int minDen, maxDen;
+
     /// <summary>
     /// 初始化并返回一个恒星Sun
     /// </summary>
@@ -19,11 +22,12 @@ public static class BodyTools
     /// <param name="pos">恒星位置</param>
     /// <param name="mass">恒星质量</param>
     /// <returns></returns>
-    public static GameObject SunInit(Color color, Vector3 pos, float mass, float density)
+    public static GameObject SunInit(Color color, Vector3 pos, float mass, float density, Sprite sunSprite)
     {
         GameObject sun = GameObject.Instantiate(body);
         sun.name = "Sun";
         SpriteRenderer spriteRenderer = sun.GetComponent<SpriteRenderer>();
+        spriteRenderer.sprite = sunSprite;
         spriteRenderer.color = color;
 
         float diam = StarDiam(mass, density);
@@ -32,7 +36,7 @@ public static class BodyTools
         sun.transform.position = pos;
         BodyBehavior bodyBehavior = sun.GetComponent<BodyBehavior>();
         bodyBehavior.mainBody = true;
-        bodyBehavior.InitInformation(Vector3.zero, diam, mass, density, color);
+        bodyBehavior.InitInformation(pos, Vector3.zero, diam, mass, density, color);
 
 
         return sun;
@@ -61,7 +65,7 @@ public static class BodyTools
         planet.transform.position = pos;
 
         BodyBehavior bodyBehavior = planet.GetComponent<BodyBehavior>();
-        bodyBehavior.InitInformation(vel, diam, mass, density, spriteRenderer.color);
+        bodyBehavior.InitInformation(pos, vel, diam, mass, density, spriteRenderer.color);
 
         bodyBehavior.mainBody = false;
 
@@ -129,8 +133,8 @@ public static class BodyTools
     {
         float mass, density, diam;
         //mainBodyMass / 500f
-        mass = Random.Range(10f, 1000f);
-        density = Random.Range(10f, 20f);
+        mass = Random.Range(minMass, maxMass);
+        density = Random.Range(minDen, maxDen);
         diam = StarDiam(mass, density);
         return (mass, density, diam);
     }

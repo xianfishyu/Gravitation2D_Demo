@@ -5,6 +5,7 @@ using UnityEngine;
 public class BodyUpdate : MonoBehaviour
 {
     BodyInit bodyInit;
+    
 
 
     private void Start()
@@ -12,14 +13,8 @@ public class BodyUpdate : MonoBehaviour
         bodyInit = GetComponent<BodyInit>();
     }
 
-    void FixedUpdate()
+    void Update()
     {
-        if (bodyInit.shaderCal.isReady)
-        {
-            bodyInit.shaderCal.PosVelUpdate();
-
-            //bodyInit.gPUCollitionCal = new(bodyInit.shaderCal.bodyArray);
-            //bodyInit.gPUCollitionCal.CollectionsUpdate();
-        }
+        bodyInit.UpdateStar();
     }
 }
