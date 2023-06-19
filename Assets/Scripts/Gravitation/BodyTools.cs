@@ -12,6 +12,10 @@ public static class BodyTools
     public static float G;
     public static GameObject sun;
 
+    public static int minMass, maxMass;
+    public static int minDen, maxDen;
+    public static float power;
+
     /// <summary>
     /// 初始化并返回一个恒星Sun
     /// </summary>
@@ -19,21 +23,28 @@ public static class BodyTools
     /// <param name="pos">恒星位置</param>
     /// <param name="mass">恒星质量</param>
     /// <returns></returns>
-    public static GameObject SunInit(Color color, Vector3 pos, float mass, float density)
+    public static GameObject SunInit(Color color, Vector3 pos, float mass, float density, Sprite sunSprite)
     {
+        //对象初始化
         GameObject sun = GameObject.Instantiate(body);
         sun.name = "Sun";
+
+        //颜色/贴图初始化
         SpriteRenderer spriteRenderer = sun.GetComponent<SpriteRenderer>();
+        //spriteRenderer.sprite = sunSprite;
         spriteRenderer.color = color;
 
+        //直径初始化
         float diam = StarDiam(mass, density);
         sun.transform.localScale = new Vector3(diam, diam, 1f);
 
+        //位置初始化
         sun.transform.position = pos;
-        BodyBehavior bodyBehavior = sun.GetComponent<BodyBehavior>();
-        bodyBehavior.InitInformation(Vector3.zero, diam, mass,density);
 
+        //行为脚本初始化
+        BodyBehavior bodyBehavior = sun.GetComponent<BodyBehavior>();
         bodyBehavior.mainBody = true;
+        bodyBehavior.InitInformation(pos, Vector3.zero, diam, mass, density, color);
 
         return sun;
     }
@@ -44,25 +55,31 @@ public static class BodyTools
     /// <returns></returns>
     public static GameObject PlanetInit()
     {
+        //对象初始化
         GameObject planet = GameObject.Instantiate(body);
         planet.name = planetName + " " + count.ToString();
         count++;
+        planet.transform.parent = GameObject.Find("Planet").transform;
+
+        //颜色初始化
         SpriteRenderer spriteRenderer = planet.GetComponent<SpriteRenderer>();
         spriteRenderer.color = RandomColor();
 
-        planet.transform.position = RandomPosition();
+        //位置/速度初始化
+        Vector3 pos = RandomPosition();
+        Vector3 vel = GetVelocity(pos);
+        planet.transform.position = pos;
 
+        //质量/密度/直径初始化
         float mass, density, diam;
         (mass, density, diam) = PlanetAttributeInit();
         planet.transform.localScale = new Vector3(diam, diam, 1f);
-        Vector3 pos = RandomPosition();
-        Vector3 vel = GetVelocity(pos);
 
-        planet.transform.position = pos;
-
+        //行为脚本初始化
         BodyBehavior bodyBehavior = planet.GetComponent<BodyBehavior>();
-        bodyBehavior.InitInformation(vel, diam, mass,density);
+        bodyBehavior.InitInformation(pos, vel, diam, mass, density, spriteRenderer.color);
 
+        //不为恒星
         bodyBehavior.mainBody = false;
 
         return planet;
@@ -76,10 +93,15 @@ public static class BodyTools
     /// <returns></returns>
     public static float StarDiam(float mass, float density)
     {
-        float diam = 2f * Mathf.Pow((3f * (mass / density )) / (4f * Mathf.PI), 1f / 3f);
+        float diam = 2f * Mathf.Pow((3f * (mass / density)) / (4f * Mathf.PI), 1f / 3f);
         return diam;
     }
 
+    /// <summary>
+    /// 根据质量调整密度(暂无效果)
+    /// </summary>
+    /// <param name="mass"></param>
+    /// <returns></returns>
     public static float StarDensity(float mass)
     {
         float density = 1;
@@ -101,9 +123,9 @@ public static class BodyTools
     /// <returns></returns>
     public static Vector3 RandomPosition()
     {
-        float angle = Random.Range(0f,2*Mathf.PI);
-        float radius = Random.Range(planetMinPos,planetMaxPos);
-        Vector3 pos = new Vector3(Mathf.Cos(angle),Mathf.Sin(angle),0) * radius;
+        float angle = Random.Range(0f, 2 * Mathf.PI);
+        float radius = Random.Range(planetMinPos, planetMaxPos);
+        Vector3 pos = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0) * radius;
         return pos;
     }
 
@@ -116,7 +138,7 @@ public static class BodyTools
     {
         Vector3 target = mainBodyPos - pos;
         Vector3 velNom = Vector3.Cross(target, Vector3.forward).normalized;
-        Vector3 vel = velNom * Mathf.Sqrt(G * mainBodyMass / target.magnitude);
+        Vector3 vel = velNom * Mathf.Pow((G * mainBodyMass / Mathf.Pow(target.magnitude,power-1f)),0.5f);
 
         return vel;
     }
@@ -129,8 +151,8 @@ public static class BodyTools
     {
         float mass, density, diam;
         //mainBodyMass / 500f
-        mass = Random.Range(10f, 1000f);
-        density = Random.Range(10f, 20f);
+        mass = Random.Range(minMass, maxMass);
+        density = Random.Range(minDen, maxDen);
         diam = StarDiam(mass, density);
         return (mass, density, diam);
     }
@@ -146,6 +168,6 @@ public static class BodyTools
         planetMaxPos = max;
     }
 
-    
+
 }
 

@@ -5,16 +5,17 @@ using UnityEngine;
 public class BodyUpdate : MonoBehaviour
 {
     BodyInit bodyInit;
+    
+
 
     private void Start()
     {
         bodyInit = GetComponent<BodyInit>();
     }
 
-    void FixedUpdate()
+    void Update()
     {
-        if (bodyInit.shaderCal.isReady) {
-            bodyInit.shaderCal.PosVelUpdate();
-        }
+        //更新
+        bodyInit.UpdateStar();
     }
 }

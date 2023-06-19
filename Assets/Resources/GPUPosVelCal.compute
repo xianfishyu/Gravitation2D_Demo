@@ -1,14 +1,18 @@
 #pragma kernel CSMain
 
-RWStructuredBuffer<float3> inputPos;
-RWStructuredBuffer<float3> inputVel;
-RWStructuredBuffer<float> inputMass;
+StructuredBuffer<float3> inputPos;
+StructuredBuffer<float3> inputVel;
+StructuredBuffer<float> inputMass;
+StructuredBuffer<float> inputRadius;
 RWStructuredBuffer<float3> outputPos;
 RWStructuredBuffer<float3> outputVel;
+RWStructuredBuffer<int> collisionFlagsBuffer;
+RWStructuredBuffer<int> collisionIndexBuffer;
 
 float G;
 float dt;
 int count;
+float power;
 
 float3 GetAcc(uint id,int count,float G,float3 thisPos)
 {
@@ -21,7 +25,7 @@ float3 GetAcc(uint id,int count,float G,float3 thisPos)
         {
             pointTo = inputPos[i] - thisPos;
             radius = length(pointTo);
-            acc += (G * inputMass[i] / radius / radius) * normalize(pointTo);
+            acc += (G * inputMass[i] / pow(radius,power)) * normalize(pointTo);
         }
     }
 
@@ -29,36 +33,59 @@ float3 GetAcc(uint id,int count,float G,float3 thisPos)
     return acc;
 }
 
-void RungeKuttaPositionAndVelocity(float3 acc, inout float3 pos, inout float3 vel, float dt)
+void PositionAndVelocity(float3 acc, inout float3 pos, inout float3 vel, float dt, uint id)
 {
-    // 声明中间变量
+    //RK4 Fixed
     float3 k1 = vel * dt;
     float3 l1 = acc * dt;
-    float3 k2 = (vel + 0.5f * l1) * dt;
-    float3 l2 = acc * dt;
-    float3 k3 = (vel + 0.5f * l2) * dt;
-    float3 l3 = acc * dt;
-    float3 k4 = (vel + l3) * dt;
-    float3 l4 = acc * dt;
 
-    // 计算位置和速度
+    float3 k2 = (vel + 0.5f * l1) * dt;
+    float3 l2 = GetAcc(id, count, G, pos + 0.5f * k1) * dt;
+
+    float3 k3 = (vel + 0.5f * l2) * dt;
+    float3 l3 = GetAcc(id, count, G, pos + 0.5f * k2) * dt;
+
+    float3 k4 = (vel + l3) * dt;
+    float3 l4 = GetAcc(id, count, G, pos + k3) * dt;
+
     pos = pos + 1.0f / 6.0f * (k1 + 2.0f * k2 + 2.0f * k3 + k4);
     vel = vel + 1.0f / 6.0f * (l1 + 2.0f * l2 + 2.0f * l3 + l4);
 }
 
+void ColliderCal(uint id)
+{
+    for(uint i = 0; i < (uint)count ;i++)
+    {
+        collisionFlagsBuffer[id] = 0;
+        collisionIndexBuffer[id] = -1;
+        if(i != id)
+        {
+            float d = length(inputPos[i] - inputPos[id]);
+            float radius = inputRadius[id] + inputRadius[i];
+            if(d < radius)
+            {
+                collisionFlagsBuffer[id] = 1;
+                collisionIndexBuffer[id] = i;
+                break;
+            }
+        }
+    }
+}
 
 
-[numthreads(8,8,1)]
+[numthreads(4,1,1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
     float3 thisPos = inputPos[id.x];
     float3 thisVel = inputVel[id.x];
     float3 acc = GetAcc(id.x,count,G,thisPos);
     
-    RungeKuttaPositionAndVelocity(acc,thisPos,thisVel,dt);
+    ColliderCal(id.x);
+    PositionAndVelocity(acc,thisPos,thisVel,dt,id.x);
 
     outputPos[id.x] = thisPos;
     outputVel[id.x] = thisVel;
+
 }
 
 

@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System;
 
-[ExecuteInEditMode, ImageEffectAllowedInSceneView]
+[ExecuteInEditMode]
 public class BloomEffect : MonoBehaviour
 {
     const int BoxDownPrefilterPass = 0;
