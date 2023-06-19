@@ -51,6 +51,8 @@ public static class BodyTools
         GameObject planet = GameObject.Instantiate(body);
         planet.name = planetName + " " + count.ToString();
         count++;
+        planet.transform.parent = GameObject.Find("Planet").transform;
+
         SpriteRenderer spriteRenderer = planet.GetComponent<SpriteRenderer>();
         spriteRenderer.color = RandomColor();
 
