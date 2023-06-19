@@ -14,6 +14,7 @@ public static class BodyTools
 
     public static int minMass, maxMass;
     public static int minDen, maxDen;
+    public static float power;
 
     /// <summary>
     /// 初始化并返回一个恒星Sun
@@ -30,7 +31,7 @@ public static class BodyTools
 
         //颜色/贴图初始化
         SpriteRenderer spriteRenderer = sun.GetComponent<SpriteRenderer>();
-        spriteRenderer.sprite = sunSprite;
+        //spriteRenderer.sprite = sunSprite;
         spriteRenderer.color = color;
 
         //直径初始化
@@ -137,7 +138,7 @@ public static class BodyTools
     {
         Vector3 target = mainBodyPos - pos;
         Vector3 velNom = Vector3.Cross(target, Vector3.forward).normalized;
-        Vector3 vel = velNom * Mathf.Sqrt(G * mainBodyMass / target.magnitude);
+        Vector3 vel = velNom * Mathf.Pow((G * mainBodyMass / Mathf.Pow(target.magnitude,power-1f)),0.5f);
 
         return vel;
     }

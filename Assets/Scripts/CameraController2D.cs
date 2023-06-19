@@ -8,6 +8,7 @@ using UnityEngine.UIElements;
 public class CameraController2D : MonoBehaviour
 {
     private Camera mainCamera;
+    private BloomEffect bloomShader;
 
     public float scale;
     public Vector3 cameraPos;
@@ -19,6 +20,7 @@ public class CameraController2D : MonoBehaviour
     private void Start()
     {
         mainCamera = GetComponent<Camera>();
+        bloomShader = GetComponent<BloomEffect>();
 
         scale = mainCamera.orthographicSize;
         cameraPos = mainCamera.transform.position;
@@ -60,4 +62,7 @@ public class CameraController2D : MonoBehaviour
         }
     }
 
+    public void SetBloom(bool status) {
+        bloomShader.enabled = status;
+    }
 }

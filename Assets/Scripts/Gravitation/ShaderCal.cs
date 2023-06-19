@@ -95,6 +95,7 @@ public class ShaderCal
         inputMass.SetData(mass, 0, 0, count);
         inputRadius.SetData(radiusArray, 0, 0, count);
         //将缓冲区内容写入到shader中
+        GPUPosVelCal.SetFloat("power",bodyInit.power);
         GPUPosVelCal.SetFloat("G", bodyInit.G);
         GPUPosVelCal.SetFloat("dt", bodyInit.calcSpeed * Time.smoothDeltaTime);
         GPUPosVelCal.SetInt("count", count);
@@ -146,17 +147,9 @@ public class ShaderCal
             int otherIndex = collisionIndex[i];
             if (collisionFlags[i] == 1)
             {
-                try
-                {
-                    bodyArray[i].behavior.Trigger(
-                        bodyArray[otherIndex].planet
-                    );
-                }
-                catch (System.Exception)
-                {
-                    Debug.LogError(i);
-                    Debug.LogError(otherIndex);
-                }
+                bodyArray[i].behavior.Trigger(
+                    bodyArray[otherIndex].planet
+                );
             }
         }
 
@@ -173,13 +166,5 @@ public class ShaderCal
         radiusArray = ArrayPool<float>.Shared.Rent(count);
         collisionIndex = ArrayPool<int>.Shared.Rent(count);
         collisionFlags = ArrayPool<int>.Shared.Rent(count);
-        
-        // bodyArray = new (GameObject planet, BodyBehavior behavior)[count];
-        // pos = new Vector3[count];
-        // vel = new Vector3[count];
-        // mass = new float[count];
-        // radiusArray = new float[count];
-        // collisionFlags = new int[count];
-        // collisionIndex = new int[count];
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class BodyInit : MonoBehaviour
 {
@@ -21,7 +22,7 @@ public class BodyInit : MonoBehaviour
     public Vector3 mainBodyPos = new(0, 0, 0);  //恒星初始位置
     public List<(GameObject planet, BodyBehavior behavior)> bodyList = new();   //星体列表
 
-    [Range(1f, 12f)]
+    [Range(1f, 20f)]
     public float geneSpeed = 1f;    //后续生成的行星生成速度
     public float G;    //引力常量
     [Range(0.01f, 10f)]
@@ -34,13 +35,19 @@ public class BodyInit : MonoBehaviour
     public int minMass, maxMass;    //行星最小/大质量
     [Range(1, 10)]
     public int minDen, maxDen;  //行星最小/大密度
+    [Range(-5f,5f)]
+    public float power = 2f; //以几次反比的引力衰减?
 
     private float sunDiam;  //恒星直径
     [System.NonSerialized]
     public bool generated = false;
     public bool isReGene = true;    //是否后续生成?
+    public bool enableTrail = true;    //是否启用拖尾
+    public bool enableCollision = true;  //是否启用碰撞
+    public bool lockG = false;  //当lockG=true,锁定G在生成器的更新
     public Color sunColor;  //恒星颜色
     public Mutex mut = new Mutex();
+
 
     //开始
     void Start()
@@ -50,9 +57,16 @@ public class BodyInit : MonoBehaviour
         //加载资源并读取到工具类中
         BodyTools.body = Resources.Load<GameObject>("Prefabs/Body");
         ShaderCal.GPUPosVelCal = Resources.Load<ComputeShader>("GPUPosVelCal");
-        Sprite sunSprite = Resources.Load<Sprite>("Textures/Sun");
         
-        //参数初始化
+        StartGen();
+    }
+
+    void StartGen()
+    {
+        Sprite sunSprite = Resources.Load<Sprite>("Textures/Sun");
+
+        bodyList.Clear();
+         //参数初始化
         ArgumentsUpdate();
 
         //生成恒星
@@ -108,10 +122,14 @@ public class BodyInit : MonoBehaviour
         {
             if (UnityEngine.Random.Range(0f, 1f) > (1f / ((float)geneSpeed + .005f)))
             {
-                GameObject planet = BodyTools.PlanetInit();
-                BodyBehavior behavior = planet.GetComponent<BodyBehavior>();
-                behavior.bodyInit = this;
-                bodyList.Add((planet, behavior));
+                for (int i = 0; i < 5; i++)
+                {
+                    GameObject planet = BodyTools.PlanetInit();
+                    BodyBehavior behavior = planet.GetComponent<BodyBehavior>();
+                    behavior.bodyInit = this;
+                    bodyList.Add((planet, behavior));
+                }
+
                 shaderCal = new(this);
             }
         }
@@ -122,12 +140,27 @@ public class BodyInit : MonoBehaviour
     /// </summary>
     private void ArgumentsUpdate()
     {
+        if (!lockG) {
+            BodyTools.G = G;
+        }
         BodyTools.mainBodyMass = mainBodyMass;
         BodyTools.mainBodyPos = mainBodyPos;
-        BodyTools.G = G;
         BodyTools.minMass = minMass;
         BodyTools.maxMass = maxMass;
         BodyTools.minDen = minDen;
         BodyTools.maxDen = maxDen;
+        BodyTools.power = power;
+    }
+
+    /// <summary>
+    /// 重载场景
+    /// </summary>
+    public void ReloadScene()
+    {
+        for (int i = 0; i < bodyList.Count; i++)
+        {
+            Destroy(bodyList[i].planet);
+        }
+        StartGen();
     }
 }

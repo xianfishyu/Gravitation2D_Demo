@@ -12,6 +12,7 @@ RWStructuredBuffer<int> collisionIndexBuffer;
 float G;
 float dt;
 int count;
+float power;
 
 float3 GetAcc(uint id,int count,float G,float3 thisPos)
 {
@@ -24,7 +25,7 @@ float3 GetAcc(uint id,int count,float G,float3 thisPos)
         {
             pointTo = inputPos[i] - thisPos;
             radius = length(pointTo);
-            acc += (G * inputMass[i] / radius / radius) * normalize(pointTo);
+            acc += (G * inputMass[i] / pow(radius,power)) * normalize(pointTo);
         }
     }
 

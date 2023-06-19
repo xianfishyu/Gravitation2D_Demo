@@ -25,10 +25,10 @@ public class BodyBehavior : MonoBehaviour
     //开始销毁
     public void StartDestroy()
     {
-        if (endtime > 0) { return; }
+        if (this == null) { return; }
         if (mainBody) { Debug.LogError("日被销毁了？"); }
         bodyInit.RemoveStar(guid);
-        endtime = trailRender.time / 5f;
+        endtime = 1f;//trailRender.time / 5f;
         time = 0;
     }
 
@@ -75,6 +75,7 @@ public class BodyBehavior : MonoBehaviour
         //如果不是,销毁处理/更新
         else
         {
+            trailRender.enabled = bodyInit.enableTrail;
             if (endtime > 0)
             {
                 if (time >= endtime)
@@ -117,12 +118,14 @@ public class BodyBehavior : MonoBehaviour
         }
         else
         {
-            if (this.mass > thatBody.mass)
-            {
-                this.vel = ((this.mass * this.vel) + (thatBody.mass * thatBody.vel)) / (this.mass + thatBody.mass);
-                this.mass = Mathf.Min(thatBody.mass + this.mass, 20000000f);
-                this.diam = BodyTools.StarDiam(mass, density);
-                thatBody.StartDestroy();
+            if (bodyInit.enableCollision) {
+                if (this.mass > thatBody.mass)
+                {
+                    this.vel = ((this.mass * this.vel) + (thatBody.mass * thatBody.vel)) / (this.mass + thatBody.mass);
+                    this.mass = Mathf.Min(thatBody.mass + this.mass, 20000000f);
+                    this.diam = BodyTools.StarDiam(mass, density);
+                    thatBody.StartDestroy();
+                }
             }
         }
 
