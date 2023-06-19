@@ -15,6 +15,7 @@ public class BodyUpdate : MonoBehaviour
 
     void Update()
     {
+        //更新
         bodyInit.UpdateStar();
     }
 }

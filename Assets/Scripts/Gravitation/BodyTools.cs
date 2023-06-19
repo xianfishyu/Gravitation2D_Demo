@@ -24,20 +24,26 @@ public static class BodyTools
     /// <returns></returns>
     public static GameObject SunInit(Color color, Vector3 pos, float mass, float density, Sprite sunSprite)
     {
+        //对象初始化
         GameObject sun = GameObject.Instantiate(body);
         sun.name = "Sun";
+
+        //颜色/贴图初始化
         SpriteRenderer spriteRenderer = sun.GetComponent<SpriteRenderer>();
         spriteRenderer.sprite = sunSprite;
         spriteRenderer.color = color;
 
+        //直径初始化
         float diam = StarDiam(mass, density);
         sun.transform.localScale = new Vector3(diam, diam, 1f);
 
+        //位置初始化
         sun.transform.position = pos;
+
+        //行为脚本初始化
         BodyBehavior bodyBehavior = sun.GetComponent<BodyBehavior>();
         bodyBehavior.mainBody = true;
         bodyBehavior.InitInformation(pos, Vector3.zero, diam, mass, density, color);
-
 
         return sun;
     }
@@ -48,27 +54,31 @@ public static class BodyTools
     /// <returns></returns>
     public static GameObject PlanetInit()
     {
+        //对象初始化
         GameObject planet = GameObject.Instantiate(body);
         planet.name = planetName + " " + count.ToString();
         count++;
         planet.transform.parent = GameObject.Find("Planet").transform;
 
+        //颜色初始化
         SpriteRenderer spriteRenderer = planet.GetComponent<SpriteRenderer>();
         spriteRenderer.color = RandomColor();
 
-        planet.transform.position = RandomPosition();
+        //位置/速度初始化
+        Vector3 pos = RandomPosition();
+        Vector3 vel = GetVelocity(pos);
+        planet.transform.position = pos;
 
+        //质量/密度/直径初始化
         float mass, density, diam;
         (mass, density, diam) = PlanetAttributeInit();
         planet.transform.localScale = new Vector3(diam, diam, 1f);
-        Vector3 pos = RandomPosition();
-        Vector3 vel = GetVelocity(pos);
 
-        planet.transform.position = pos;
-
+        //行为脚本初始化
         BodyBehavior bodyBehavior = planet.GetComponent<BodyBehavior>();
         bodyBehavior.InitInformation(pos, vel, diam, mass, density, spriteRenderer.color);
 
+        //不为恒星
         bodyBehavior.mainBody = false;
 
         return planet;
@@ -86,6 +96,11 @@ public static class BodyTools
         return diam;
     }
 
+    /// <summary>
+    /// 根据质量调整密度(暂无效果)
+    /// </summary>
+    /// <param name="mass"></param>
+    /// <returns></returns>
     public static float StarDensity(float mass)
     {
         float density = 1;

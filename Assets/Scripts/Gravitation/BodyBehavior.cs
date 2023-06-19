@@ -6,20 +6,23 @@ using Unity.VisualScripting;
 
 public class BodyBehavior : MonoBehaviour
 {
-    public Vector3 pos;
-    public Vector3 vel;
-    public float diam, mass, density;
-    public bool mainBody = false;
+    public Vector3 pos; //位置
+    public Vector3 vel; //速度
+    public float diam, mass, density;   //直径/质量/密度
+    public bool mainBody = false;   //是否为恒星?
     public BodyInit bodyInit;
-    public Guid guid = Guid.NewGuid();
+    public Guid guid = Guid.NewGuid();  //UUID
     //bool isReady = false;
+
+    //销毁参数
     float endtime = 0;
     float time = 0;
-    Color color;
+    Color color;    //星体颜色
 
     TrailRenderer trailRender;
     SpriteRenderer spriteRenderer;
 
+    //开始销毁
     public void StartDestroy()
     {
         if (endtime > 0) { return; }
@@ -29,19 +32,10 @@ public class BodyBehavior : MonoBehaviour
         time = 0;
     }
 
-    private void OnDestroy()
-    {
-        // if (endtime > 0) return;
-        // int ret = bodyInit.bodyList.FindIndex(it => it.behavior.guid == this.guid);
-        // if (ret != -1)
-        // {
-        //     bodyInit.bodyList.RemoveAt(ret);
-        //     bodyInit.shaderCal = new(this.bodyInit);
-        // }
-    }
-
+    //初始化信息
     public void InitInformation(Vector3 pos, Vector3 vel, float diam, float mass, float density, Color color)
     {
+        //传入参数
         this.pos = pos;
         this.vel = vel;
         this.diam = diam;
@@ -53,9 +47,11 @@ public class BodyBehavior : MonoBehaviour
         trailRender = GetComponent<TrailRenderer>();
         spriteRenderer = GetComponent<SpriteRenderer>();
 
+        //尾迹颜色
         trailRender.startColor = color * 0.7f;
         trailRender.endColor = color * 0.3f;
 
+        //当为恒星时,关闭尾迹
         if (mainBody)
         {
             trailRender.enabled = false;
@@ -63,21 +59,20 @@ public class BodyBehavior : MonoBehaviour
 
     }
 
-    private void Start()
-    {
-
-    }
-
-    
+    private void Start(){}
 
     private void Update()
     {
+        //更新位置/直径
         gameObject.transform.position = pos;
         gameObject.transform.localScale = new Vector3(diam, diam, 1f);
+
+        //如果是恒星,把恒星质量传入工具类
         if (mainBody)
         {
             BodyTools.mainBodyMass = mass;
         } 
+        //如果不是,销毁处理/更新
         else
         {
             if (endtime > 0)
@@ -95,13 +90,13 @@ public class BodyBehavior : MonoBehaviour
                     spriteRenderer.color = spriteRenderer.color * percent;
                 }
             } else if (pos.magnitude > 10000) { this.StartDestroy(); }
-
+            //尾迹参数更新
             TrailUpdate();
         }
 
     }
 
-    //void OnTriggerEnter2D(Collider2D other)
+    //触发器
     public void Trigger(GameObject other)
     {
         if (other == null) return;

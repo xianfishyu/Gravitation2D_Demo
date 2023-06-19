@@ -30,19 +30,26 @@ public class ShaderCal
     public bool isReady = false;
 
 
-
+    /// <summary>
+    /// 当生成行星以及摧毁行星时调用
+    /// </summary>
+    /// <param name="bodyInit"></param>
     public ShaderCal(BodyInit bodyInit)
     {
+        //初始化GPU参数
         kernelIndex = GPUPosVelCal.FindKernel("CSMain");
+
+        //获得星体数量
         this.bodyInit = bodyInit;
         count = bodyInit.bodyList.Count;
 
-        //初始化id
+        //初始化数据
         RentPool();
         SetData();
         isReady = true;
     }
 
+    //将星体列表中的元素压入数组中
     public void SetData()
     {
         for (int i = 0; i < count; i++)
@@ -52,7 +59,7 @@ public class ShaderCal
     }
 
 
-    //初始化
+    //初始化Buffer
     public void BufferInit()
     {
         //初始化缓冲区
@@ -66,6 +73,7 @@ public class ShaderCal
         collisionIndexBuffer = new ComputeBuffer(count, sizeof(int));
     }
 
+//释放Buffer
     public void BufferDestory()
     {
         inputPos.Dispose();
@@ -114,6 +122,7 @@ public class ShaderCal
     {
         BufferInit();
         
+        //将pos/vel/mass/radius等压入数组中
         for (int i = 0; i < count; i++)
         {
             // pos[i] = bodyArray[i].planet.transform.position;
@@ -125,6 +134,7 @@ public class ShaderCal
 
         GPUCal();
 
+        //读取并赋值
         for (int i = 0; i < count; i++)
         {
             if (i > 0)
@@ -153,6 +163,7 @@ public class ShaderCal
         BufferDestory();
     }
 
+    //对象池
     public void RentPool()
     {
         bodyArray = ArrayPool<(GameObject planet, BodyBehavior behavior)>.Shared.Rent(count);
