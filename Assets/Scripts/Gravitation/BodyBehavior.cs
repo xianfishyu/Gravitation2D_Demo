@@ -119,7 +119,8 @@ public class BodyBehavior : MonoBehaviour
         }
         else
         {
-            if (bodyInit.enableCollision) {
+            if (bodyInit.enableCollision && this.mainBody == false)
+            {
                 if (this.mass > thatBody.mass)
                 {
                     this.vel = ((this.mass * this.vel) + (thatBody.mass * thatBody.vel)) / (this.mass + thatBody.mass);
