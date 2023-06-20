@@ -29,6 +29,7 @@ public class Imgui : MonoBehaviour
         ImGui.DragFloat("Gravity", ref bodyInit.G, 0.1f, 0.1f, 3f);
         ImGui.DragFloat("Planet Max Pos", ref bodyInit.planetMaxPos, 50f, 500f, 5000f);
         ImGui.DragFloat("power", ref bodyInit.power, 0.5f, -5f, 5f);
+        ImGui.DragFloat("size",ref _camera.GetComponent<CameraController2D>().scale,1f,100f,1500f);
         ImGui.Checkbox("Generate", ref bodyInit.isReGene);
         ImGui.Checkbox("Trail", ref bodyInit.enableTrail);
         ImGui.Checkbox("Collision", ref bodyInit.enableCollision);
