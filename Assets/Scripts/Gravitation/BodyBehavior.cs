@@ -10,6 +10,7 @@ public class BodyBehavior : MonoBehaviour
     public Vector3 vel; //速度
     public float diam, mass, density;   //直径/质量/密度
     public bool mainBody = false;   //是否为恒星?
+    public bool startDestroy = false;   // 是否已经开始进入销毁
     public BodyInit bodyInit;
     public Guid guid = Guid.NewGuid();  //UUID
     //bool isReady = false;
@@ -30,6 +31,7 @@ public class BodyBehavior : MonoBehaviour
         bodyInit.RemoveStar(guid);
         endtime = 1f;//trailRender.time / 5f;
         time = 0;
+        startDestroy = true;
     }
 
     //初始化信息
@@ -70,13 +72,13 @@ public class BodyBehavior : MonoBehaviour
         //如果是恒星,把恒星质量传入工具类
         if (mainBody)
         {
-            BodyTools.mainBodyMass = mass;
+            bodyInit.mainBodyMass = mass;
         } 
         //如果不是,销毁处理/更新
         else
         {
             trailRender.enabled = bodyInit.enableTrail;
-            if (endtime > 0)
+            if (startDestroy)
             {
                 if (time >= endtime)
                 {
@@ -84,7 +86,7 @@ public class BodyBehavior : MonoBehaviour
                 }
                 else
                 {
-                    time += Time.fixedDeltaTime;
+                    time += Time.deltaTime;
                     float percent = 1.0f - (time / endtime);
                     trailRender.startColor = color * 0.7f * percent;
                     trailRender.endColor = color * 0.3f * percent;
@@ -121,10 +123,11 @@ public class BodyBehavior : MonoBehaviour
         {
             if (bodyInit.enableCollision && this.mainBody == false)
             {
-                if (this.mass > thatBody.mass)
+                if (this.mass >= thatBody.mass)
                 {
-                    this.vel = ((this.mass * this.vel) + (thatBody.mass * thatBody.vel)) / (this.mass + thatBody.mass);
-                    this.mass = Mathf.Min(thatBody.mass + this.mass, 2000000f);
+                    if(bodyInit.enableMomentum)
+                        this.vel = ((this.mass * this.vel) + (thatBody.mass * thatBody.vel)) / (this.mass + thatBody.mass);
+                    this.mass = Mathf.Min(thatBody.mass + this.mass, 2000000f + UnityEngine.Random.Range(10f,100f));
                     this.diam = BodyTools.StarDiam(mass, density);
                     thatBody.StartDestroy();
                 }
@@ -136,12 +139,13 @@ public class BodyBehavior : MonoBehaviour
     void TrailUpdate()
     {
         //宽度更新
-        trailRender.startWidth = diam * 0.3f;
+        trailRender.startWidth = diam * 0.2f;
 
         //拖尾更新
         //float time = 100f * Mathf.Pow(1.1f, -0.2f * vel.magnitude) / 10f;
-        float time = Mathf.Pow(300f * Mathf.Pow(1.05f,-1.9f * vel.magnitude),2f) + 2f;
-        trailRender.time = MathF.Min(Mathf.Max(time, 1f), 20f) + (trailRender.startWidth * 2f);
+        // float time = Mathf.Pow(300f * Mathf.Pow(1.05f,-1.9f * vel.magnitude),2f) + 2f;
+        float trailTime = -vel.magnitude + 20f;
+        trailRender.time = MathF.Min(Mathf.Max(trailTime, 1f), 20f) + (trailRender.startWidth * 2f);
         //trailRender.time = 100f;
 
     }
