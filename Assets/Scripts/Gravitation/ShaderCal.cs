@@ -138,7 +138,7 @@ public class ShaderCal
         //读取并赋值
         for (int i = 0; i < count; i++)
         {
-            if (i > 0)
+            if (bodyInit.enableSunMove || i > 0)
             {
                 // bodyArray[i].planet.transform.position = this.pos[i];
                 bodyArray[i].behavior.pos = this.pos[i];

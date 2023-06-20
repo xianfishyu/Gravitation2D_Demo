@@ -44,6 +44,8 @@ public class BodyInit : MonoBehaviour
     public bool isReGene = true;    //是否后续生成?
     public bool enableTrail = true;    //是否启用拖尾
     public bool enableCollision = true;  //是否启用碰撞
+    public bool enableSunCollision = true; //太阳是否碰撞
+    public bool enableSunMove = false; //太阳是否移动
     public bool lockG = false;  //当lockG=true,锁定G在生成器的更新
     public Color sunColor;  //恒星颜色
     public Mutex mut = new Mutex();
@@ -76,7 +78,7 @@ public class BodyInit : MonoBehaviour
         sunDiam = sunBehavior.diam;
 
         //计算并写入行星生成最小/大距离
-        planetMinPos = sunDiam + 20f;
+        planetMinPos = sunDiam + 30f;
         BodyTools.GenerateRange(planetMinPos, planetMaxPos);
 
         //将星体写入数组
