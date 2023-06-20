@@ -1,11 +1,9 @@
 #pragma kernel CSMain
 
-StructuredBuffer<float3> inputPos;
-StructuredBuffer<float3> inputVel;
 StructuredBuffer<float> inputMass;
 StructuredBuffer<float> inputRadius;
-RWStructuredBuffer<float3> outputPos;
-RWStructuredBuffer<float3> outputVel;
+RWStructuredBuffer<float3> Pos;
+RWStructuredBuffer<float3> Vel;
 RWStructuredBuffer<int> collisionFlagsBuffer;
 RWStructuredBuffer<int> collisionIndexBuffer;
 
@@ -23,7 +21,7 @@ float3 GetAcc(uint id,int count,float G,float3 thisPos)
     {
         if(i != id)
         {
-            pointTo = inputPos[i] - thisPos;
+            pointTo = Pos[i] - thisPos;
             radius = length(pointTo);
             acc += (G * inputMass[i] / pow(radius,power)) * normalize(pointTo);
         }
@@ -60,7 +58,7 @@ void ColliderCal(uint id)
         collisionIndexBuffer[id] = -1;
         if(i != id)
         {
-            float d = length(inputPos[i] - inputPos[id]);
+            float d = length(Pos[i] - Pos[id]);
             float radius = inputRadius[id] + inputRadius[i];
             if(d < radius)
             {
@@ -76,15 +74,15 @@ void ColliderCal(uint id)
 [numthreads(4,1,1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    float3 thisPos = inputPos[id.x];
-    float3 thisVel = inputVel[id.x];
+    float3 thisPos = Pos[id.x];
+    float3 thisVel = Vel[id.x];
     float3 acc = GetAcc(id.x,count,G,thisPos);
     
     ColliderCal(id.x);
     PositionAndVelocity(acc,thisPos,thisVel,dt,id.x);
 
-    outputPos[id.x] = thisPos;
-    outputVel[id.x] = thisVel;
+    Pos[id.x] = thisPos;
+    Vel[id.x] = thisVel;
 
 }
 
