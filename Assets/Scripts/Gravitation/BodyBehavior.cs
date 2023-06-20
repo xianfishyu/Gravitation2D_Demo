@@ -104,15 +104,16 @@ public class BodyBehavior : MonoBehaviour
         // Debug.Log("Entered trigger with: " + gameObject.name + " and " + other.name);
         GameObject thatGameObject = other.gameObject;
         BodyBehavior thatBody = thatGameObject.GetComponent<BodyBehavior>();
-        if (mainBody)
+
+        if (mainBody && bodyInit.enableSunMove)
         {
-            this.mass = Mathf.Min(thatBody.mass + this.mass, 500000000f);
+            this.mass = Mathf.Min(thatBody.mass + this.mass, 10000000f);
             this.diam = BodyTools.StarDiam(mass, density);
             thatBody.StartDestroy();
         }
-        else if (thatBody.mainBody)
+        else if (thatBody.mainBody && bodyInit.enableSunMove)
         {
-            thatBody.mass = Mathf.Min(thatBody.mass + this.mass, 500000000f);
+            thatBody.mass = Mathf.Min(thatBody.mass + this.mass, 10000000f);
             thatBody.diam = BodyTools.StarDiam(thatBody.mass, thatBody.density);
             this.StartDestroy();
         }
@@ -122,7 +123,7 @@ public class BodyBehavior : MonoBehaviour
                 if (this.mass > thatBody.mass)
                 {
                     this.vel = ((this.mass * this.vel) + (thatBody.mass * thatBody.vel)) / (this.mass + thatBody.mass);
-                    this.mass = Mathf.Min(thatBody.mass + this.mass, 20000000f);
+                    this.mass = Mathf.Min(thatBody.mass + this.mass, 2000000f);
                     this.diam = BodyTools.StarDiam(mass, density);
                     thatBody.StartDestroy();
                 }
