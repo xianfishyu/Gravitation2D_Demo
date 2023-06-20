@@ -105,13 +105,13 @@ public class BodyBehavior : MonoBehaviour
         GameObject thatGameObject = other.gameObject;
         BodyBehavior thatBody = thatGameObject.GetComponent<BodyBehavior>();
 
-        if (mainBody && bodyInit.enableSunMove)
+        if (mainBody && bodyInit.enableSunCollision)
         {
             this.mass = Mathf.Min(thatBody.mass + this.mass, 10000000f);
             this.diam = BodyTools.StarDiam(mass, density);
             thatBody.StartDestroy();
         }
-        else if (thatBody.mainBody && bodyInit.enableSunMove)
+        else if (thatBody.mainBody && bodyInit.enableSunCollision)
         {
             thatBody.mass = Mathf.Min(thatBody.mass + this.mass, 10000000f);
             thatBody.diam = BodyTools.StarDiam(thatBody.mass, thatBody.density);
